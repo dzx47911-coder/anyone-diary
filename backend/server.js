@@ -21,7 +21,11 @@ let db;
 
 async function initDatabase() {
   const SQL = await initSqlJs();
-  const dbPath = path.join(__dirname, 'db', 'diary.db');
+  const dbDir = path.join(__dirname, 'db');
+  if (!fs.existsSync(dbDir)) {
+    fs.mkdirSync(dbDir, { recursive: true });
+  }
+  const dbPath = path.join(dbDir, 'diary.db');
 
   if (fs.existsSync(dbPath)) {
     const fileBuffer = fs.readFileSync(dbPath);
