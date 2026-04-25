@@ -7,7 +7,7 @@ const Icon = ({ name, size = 20 }) => (
   </svg>
 )
 
-function Header({ ownerName, onEditName }) {
+function Header({ ownerName, onEditName, onLogout }) {
   const location = useLocation()
 
   return (
@@ -32,6 +32,22 @@ function Header({ ownerName, onEditName }) {
           title="修改名称"
         >
           ✏️
+        </button>
+        <button
+          onClick={onLogout}
+          style={{
+            marginLeft: 8,
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: 14,
+            opacity: 0.6,
+            padding: '4px 8px',
+            borderRadius: 4,
+          }}
+          title="退出登录"
+        >
+          🚪
         </button>
       </h1>
       <nav className="header-nav">
