@@ -10,7 +10,11 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const JWT_SECRET = 'xiaodong-diary-secret-2026';
 
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 let db;
@@ -178,7 +182,7 @@ app.delete('/api/diaries/:id', authenticate, (req, res) => {
 });
 
 initDatabase().then(() => {
-  app.listen(PORT, () => {
-    console.log(`小董日记后端运行在 http://localhost:${PORT}`);
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`小董日记后端运行在 http://0.0.0.0:${PORT}`);
   });
 });
