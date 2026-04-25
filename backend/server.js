@@ -77,8 +77,12 @@ app.post('/api/auth/register', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: '请填写邮箱和密码' });
 
-  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
-  if (existing) return res.status(400).json({ error: '该邮箱已注册' });
+  const checkStmt = db.prepare('SELECT id FROM users WHERE email = ?');
+  checkStmt.bind([email]);
+  const exists = checkStmt.step();
+  checkStmt.free();
+
+  if (exists) return res.status(400).json({ error: '该邮箱已注册' });
 
   const hash = await bcrypt.hash(password, 10);
   db.run('INSERT INTO users (email, password_hash) VALUES (?, ?)', [email, hash]);
