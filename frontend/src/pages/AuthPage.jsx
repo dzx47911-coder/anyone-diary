@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 
-const API_URL = 'https://anyone-diary-production.up.railway.app/api'
+const API_URL = 'https://anyone-diary.onrender.com'
 
 function AuthPage({ onLogin }) {
   const [isLogin, setIsLogin] = useState(true)

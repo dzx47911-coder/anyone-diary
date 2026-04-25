@@ -9,7 +9,7 @@ import CardGenerator from './pages/CardGenerator'
 import SummaryPage from './pages/SummaryPage'
 import TimelinePage from './pages/TimelinePage'
 
-const API_URL = 'https://anyone-diary-production.up.railway.app/api'
+const API_URL = 'https://anyone-diary.onrender.com'
 
 function App() {
   const [token, setToken] = useState(() => localStorage.getItem('diary-token'))
