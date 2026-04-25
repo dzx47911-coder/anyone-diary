@@ -1,14 +1,17 @@
 const express = require('express');
 const cors = require('cors');
-const initSqlJs = require('sql.js');
+const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const fs = require('fs');
-const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 const JWT_SECRET = 'xiaodong-diary-secret-2026';
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
 
 app.use(cors({
   origin: '*',
@@ -17,56 +20,34 @@ app.use(cors({
 }));
 app.use(express.json());
 
-let db;
-
 async function initDatabase() {
-  const SQL = await initSqlJs();
-  const dbDir = path.join(__dirname, 'db');
-  if (!fs.existsSync(dbDir)) {
-    fs.mkdirSync(dbDir, { recursive: true });
+  const client = await pool.connect();
+  try {
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        email TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS diaries (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        date TEXT NOT NULL,
+        weather TEXT,
+        mood TEXT,
+        content TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await client.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_user_date ON diaries(user_id, date)`);
+    console.log('数据库初始化完成');
+  } finally {
+    client.release();
   }
-  const dbPath = path.join(dbDir, 'diary.db');
-
-  if (fs.existsSync(dbPath)) {
-    const fileBuffer = fs.readFileSync(dbPath);
-    db = new SQL.Database(fileBuffer);
-  } else {
-    db = new SQL.Database();
-  }
-
-  db.run(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      email TEXT UNIQUE NOT NULL,
-      password_hash TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  db.run(`
-    CREATE TABLE IF NOT EXISTS diaries (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
-      date TEXT NOT NULL,
-      weather TEXT,
-      mood TEXT,
-      content TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id)
-    )
-  `);
-
-  db.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_user_date ON diaries(user_id, date)`);
-
-  console.log('数据库初始化完成');
-}
-
-function saveDatabase() {
-  const data = db.export();
-  const buffer = Buffer.from(data);
-  const dbPath = path.join(__dirname, 'db', 'diary.db');
-  fs.writeFileSync(dbPath, buffer);
 }
 
 const authenticate = (req, res, next) => {
@@ -85,104 +66,108 @@ app.post('/api/auth/register', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: '请填写邮箱和密码' });
 
-  const checkStmt = db.prepare('SELECT id FROM users WHERE email = ?');
-  checkStmt.bind([email]);
-  const exists = checkStmt.step();
-  checkStmt.free();
+  try {
+    const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    if (existing.rows.length > 0) {
+      return res.status(400).json({ error: '该邮箱已注册' });
+    }
 
-  if (exists) return res.status(400).json({ error: '该邮箱已注册' });
-
-  const hash = await bcrypt.hash(password, 10);
-  db.run('INSERT INTO users (email, password_hash) VALUES (?, ?)', [email, hash]);
-
-  const result = db.exec('SELECT last_insert_rowid() as id');
-  const userId = result[0].values[0][0];
-
-  const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: '30d' });
-  saveDatabase();
-  res.json({ token, userId });
+    const hash = await bcrypt.hash(password, 10);
+    const result = await pool.query(
+      'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id',
+      [email, hash]
+    );
+    const userId = result.rows[0].id;
+    const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: '30d' });
+    res.json({ token, userId });
+  } catch (err) {
+    console.error('注册错误:', err);
+    res.status(500).json({ error: '服务器错误' });
+  }
 });
 
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
-  const stmt = db.prepare('SELECT * FROM users WHERE email = ?');
-  stmt.bind([email]);
-  if (!stmt.step()) {
-    stmt.free();
-    return res.status(401).json({ error: '邮箱或密码错误' });
-  }
-  const user = stmt.getAsObject();
-  stmt.free();
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: '邮箱或密码错误' });
+    }
+    const user = result.rows[0];
+    const valid = await bcrypt.compare(password, user.password_hash);
+    if (!valid) return res.status(401).json({ error: '邮箱或密码错误' });
 
-  const valid = await bcrypt.compare(password, user.password_hash);
-  if (!valid) return res.status(401).json({ error: '邮箱或密码错误' });
-
-  const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '30d' });
-  res.json({ token, userId: user.id });
-});
-
-app.get('/api/diaries', authenticate, (req, res) => {
-  const stmt = db.prepare('SELECT * FROM diaries WHERE user_id = ? ORDER BY date DESC');
-  stmt.bind([req.userId]);
-  const diaries = [];
-  while (stmt.step()) {
-    diaries.push(stmt.getAsObject());
-  }
-  stmt.free();
-  res.json(diaries);
-});
-
-app.get('/api/diaries/:date', authenticate, (req, res) => {
-  const stmt = db.prepare('SELECT * FROM diaries WHERE user_id = ? AND date = ?');
-  stmt.bind([req.userId, req.params.date]);
-  if (stmt.step()) {
-    const diary = stmt.getAsObject();
-    stmt.free();
-    res.json(diary);
-  } else {
-    stmt.free();
-    res.json(null);
+    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '30d' });
+    res.json({ token, userId: user.id });
+  } catch (err) {
+    console.error('登录错误:', err);
+    res.status(500).json({ error: '服务器错误' });
   }
 });
 
-app.post('/api/diaries', authenticate, (req, res) => {
+app.get('/api/diaries', authenticate, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM diaries WHERE user_id = $1 ORDER BY date DESC',
+      [req.userId]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('获取日记错误:', err);
+    res.status(500).json({ error: '服务器错误' });
+  }
+});
+
+app.get('/api/diaries/:date', authenticate, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM diaries WHERE user_id = $1 AND date = $2',
+      [req.userId, req.params.date]
+    );
+    res.json(result.rows[0] || null);
+  } catch (err) {
+    console.error('获取日记错误:', err);
+    res.status(500).json({ error: '服务器错误' });
+  }
+});
+
+app.post('/api/diaries', authenticate, async (req, res) => {
   const { date, weather, mood, content } = req.body;
   if (!date) return res.status(400).json({ error: '日期不能为空' });
 
-  const checkStmt = db.prepare('SELECT id FROM diaries WHERE user_id = ? AND date = ?');
-  checkStmt.bind([req.userId, date]);
-  if (checkStmt.step()) {
-    const existingId = checkStmt.getAsObject().id;
-    checkStmt.free();
-    db.run('UPDATE diaries SET weather = ?, mood = ?, content = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-      [weather, mood, content, existingId]);
-    const getStmt = db.prepare('SELECT * FROM diaries WHERE id = ?');
-    getStmt.bind([existingId]);
-    getStmt.step();
-    const updated = getStmt.getAsObject();
-    getStmt.free();
-    saveDatabase();
-    res.json(updated);
-  } else {
-    checkStmt.free();
-    db.run('INSERT INTO diaries (user_id, date, weather, mood, content) VALUES (?, ?, ?, ?, ?)',
-      [req.userId, date, weather, mood, content]);
-    const result = db.exec('SELECT last_insert_rowid() as id');
-    const diaryId = result[0].values[0][0];
-    const getStmt = db.prepare('SELECT * FROM diaries WHERE id = ?');
-    getStmt.bind([diaryId]);
-    getStmt.step();
-    const diary = getStmt.getAsObject();
-    getStmt.free();
-    saveDatabase();
-    res.json(diary);
+  try {
+    const check = await pool.query(
+      'SELECT id FROM diaries WHERE user_id = $1 AND date = $2',
+      [req.userId, date]
+    );
+
+    if (check.rows.length > 0) {
+      const result = await pool.query(
+        'UPDATE diaries SET weather = $1, mood = $2, content = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4 RETURNING *',
+        [weather, mood, content, check.rows[0].id]
+      );
+      res.json(result.rows[0]);
+    } else {
+      const result = await pool.query(
+        'INSERT INTO diaries (user_id, date, weather, mood, content) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+        [req.userId, date, weather, mood, content]
+      );
+      res.json(result.rows[0]);
+    }
+  } catch (err) {
+    console.error('保存日记错误:', err);
+    res.status(500).json({ error: '服务器错误' });
   }
 });
 
-app.delete('/api/diaries/:id', authenticate, (req, res) => {
-  db.run('DELETE FROM diaries WHERE id = ? AND user_id = ?', [req.params.id, req.userId]);
-  saveDatabase();
-  res.json({ success: true });
+app.delete('/api/diaries/:id', authenticate, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM diaries WHERE id = $1 AND user_id = $2', [req.params.id, req.userId]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('删除日记错误:', err);
+    res.status(500).json({ error: '服务器错误' });
+  }
 });
 
 initDatabase().then(() => {
