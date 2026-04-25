@@ -7,7 +7,7 @@ const Icon = ({ name, size = 20 }) => (
   </svg>
 )
 
-function Header() {
+function Header({ ownerName }) {
   const location = useLocation()
 
   return (
@@ -16,7 +16,7 @@ function Header() {
         <svg style={{ width: 28, height: 28, verticalAlign: 'middle', marginRight: 8 }}>
           <use xlinkHref="#icon-edit"></use>
         </svg>
-        小董日记
+        {ownerName ? `${ownerName}的日记` : '日记'}
       </h1>
       <nav className="header-nav">
         <Link to="/" className={location.pathname === '/' ? 'active' : ''}>

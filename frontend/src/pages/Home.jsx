@@ -1,8 +1,15 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import FloatingDecorations from '../components/FloatingDecorations'
 
 function Home({ diaries }) {
+  const [ownerName, setOwnerName] = useState('')
+
+  useEffect(() => {
+    const saved = localStorage.getItem('diary-owner-name')
+    if (saved) setOwnerName(saved)
+  }, [])
+
   return (
     <div className="page-container">
       <FloatingDecorations />
@@ -11,7 +18,7 @@ function Home({ diaries }) {
           <svg style={{ width: 36, height: 36, verticalAlign: 'middle', marginRight: 10 }}>
             <use xlinkHref="#icon-flower"></use>
           </svg>
-          小董日记
+          {ownerName ? `${ownerName}的日记` : '我的日记'}
         </h1>
         <p className="date">记录生活中的每一个小确幸</p>
       </div>

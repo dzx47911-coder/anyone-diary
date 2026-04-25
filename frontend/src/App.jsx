@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Header from './components/Header'
+import NameModal from './components/NameModal'
 import Home from './pages/Home'
 import CalendarPage from './pages/CalendarPage'
 import CardGenerator from './pages/CardGenerator'
@@ -9,11 +10,16 @@ import TimelinePage from './pages/TimelinePage'
 
 function App() {
   const [diaries, setDiaries] = useState([])
+  const [ownerName, setOwnerName] = useState('')
 
   useEffect(() => {
     const saved = localStorage.getItem('xiaodong-diaries')
     if (saved) {
       setDiaries(JSON.parse(saved))
+    }
+    const savedName = localStorage.getItem('diary-owner-name')
+    if (savedName) {
+      setOwnerName(savedName)
     }
   }, [])
 
@@ -33,10 +39,15 @@ function App() {
     saveDiaries(newDiaries)
   }
 
+  const handleNameSave = (name) => {
+    setOwnerName(name)
+  }
+
   return (
     <BrowserRouter>
       <div className="diary-app">
-        <Header />
+        <NameModal onSave={handleNameSave} />
+        <Header ownerName={ownerName} />
         <main className="diary-main">
           <Routes>
             <Route path="/" element={<Home diaries={diaries} />} />
