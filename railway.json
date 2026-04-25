@@ -1,9 +1,11 @@
 {
+  "name": "xiaodong-diary",
+  "version": "1.0.0",
   "build": {
     "builder": "NIXPACKS",
     "buildCommand": "cd backend && npm install"
   },
   "deploy": {
-    "startCommand": "cd backend && node server.js"
+    "startCommand": "cd backend && npm start"
   }
 }
