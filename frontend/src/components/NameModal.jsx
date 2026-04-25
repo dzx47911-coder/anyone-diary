@@ -1,15 +1,25 @@
 import React, { useState, useEffect } from 'react'
 
-function NameModal({ onSave }) {
+function NameModal({ onSave, isEdit = false }) {
   const [name, setName] = useState('')
   const [isOpen, setIsOpen] = useState(false)
 
   useEffect(() => {
-    const savedName = localStorage.getItem('diary-owner-name')
-    if (!savedName) {
+    if (isEdit) {
+      const savedName = localStorage.getItem('diary-owner-name') || ''
+      setName(savedName)
       setIsOpen(true)
-    } else {
-      onSave(savedName)
+    }
+  }, [isEdit])
+
+  useEffect(() => {
+    if (!isEdit) {
+      const savedName = localStorage.getItem('diary-owner-name')
+      if (!savedName) {
+        setIsOpen(true)
+      } else {
+        onSave(savedName)
+      }
     }
   }, [])
 
@@ -33,8 +43,8 @@ function NameModal({ onSave }) {
           <span>💫</span>
         </div>
 
-        <h2>欢迎来到你的日记本</h2>
-        <p>给自己取个名字吧</p>
+        <h2>{isEdit ? '修改日记本名称' : '欢迎来到你的日记本'}</h2>
+        <p>{isEdit ? '给日记本取个新名字吧' : '给自己取个名字吧'}</p>
 
         <form onSubmit={handleSubmit}>
           <input
@@ -47,7 +57,7 @@ function NameModal({ onSave }) {
             maxLength={10}
           />
           <button type="submit" className="diary-btn" disabled={!name.trim()}>
-            开始日记 ✨
+            {isEdit ? '保存 ✨' : '开始日记 ✨'}
           </button>
         </form>
       </div>

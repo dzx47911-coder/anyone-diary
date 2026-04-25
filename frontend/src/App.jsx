@@ -11,6 +11,7 @@ import TimelinePage from './pages/TimelinePage'
 function App() {
   const [diaries, setDiaries] = useState([])
   const [ownerName, setOwnerName] = useState('')
+  const [showEditNameModal, setShowEditNameModal] = useState(false)
 
   useEffect(() => {
     const saved = localStorage.getItem('xiaodong-diaries')
@@ -47,7 +48,11 @@ function App() {
     <BrowserRouter>
       <div className="diary-app">
         <NameModal onSave={handleNameSave} />
-        <Header ownerName={ownerName} />
+        <NameModal isEdit={showEditNameModal} onSave={(name) => {
+          handleNameSave(name)
+          setShowEditNameModal(false)
+        }} />
+        <Header ownerName={ownerName} onEditName={() => setShowEditNameModal(true)} />
         <main className="diary-main">
           <Routes>
             <Route path="/" element={<Home diaries={diaries} />} />

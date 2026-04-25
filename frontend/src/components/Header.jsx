@@ -7,7 +7,7 @@ const Icon = ({ name, size = 20 }) => (
   </svg>
 )
 
-function Header({ ownerName }) {
+function Header({ ownerName, onEditName }) {
   const location = useLocation()
 
   return (
@@ -17,6 +17,22 @@ function Header({ ownerName }) {
           <use xlinkHref="#icon-edit"></use>
         </svg>
         {ownerName ? `${ownerName}的日记` : '日记'}
+        <button
+          onClick={onEditName}
+          style={{
+            marginLeft: 12,
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: 14,
+            opacity: 0.6,
+            padding: '4px 8px',
+            borderRadius: 4,
+          }}
+          title="修改名称"
+        >
+          ✏️
+        </button>
       </h1>
       <nav className="header-nav">
         <Link to="/" className={location.pathname === '/' ? 'active' : ''}>
