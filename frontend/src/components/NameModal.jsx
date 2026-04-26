@@ -1,19 +1,15 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 
 function NameModal({ onSave, isEdit = false }) {
   const [name, setName] = useState('')
   const [isOpen, setIsOpen] = useState(false)
 
-  useEffect(() => {
+  const checkAndOpen = useCallback(() => {
     if (isEdit) {
       const savedName = localStorage.getItem('diary-owner-name') || ''
       setName(savedName)
       setIsOpen(true)
-    }
-  }, [isEdit])
-
-  useEffect(() => {
-    if (!isEdit) {
+    } else {
       const savedName = localStorage.getItem('diary-owner-name')
       if (!savedName) {
         setIsOpen(true)
@@ -21,7 +17,11 @@ function NameModal({ onSave, isEdit = false }) {
         onSave(savedName)
       }
     }
-  }, [])
+  }, [isEdit, onSave])
+
+  useEffect(() => {
+    checkAndOpen()
+  }, [checkAndOpen])
 
   const handleSubmit = (e) => {
     e.preventDefault()

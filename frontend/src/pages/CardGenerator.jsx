@@ -6,19 +6,37 @@ import DiaryCard from '../components/DiaryCard'
 function CardGenerator({ onSave }) {
   const navigate = useNavigate()
   const [previewDiary, setPreviewDiary] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
 
   const handleSubmit = async (data) => {
     const newDiary = {
       ...data,
-      id: Date.now(), // Generate unique ID
+      id: Date.now(),
       createdAt: new Date().toISOString()
     }
-    onSave(newDiary)
-    setPreviewDiary(newDiary)
+
+    setSaving(true)
+    setSaveError('')
+
+    try {
+      const result = await onSave(newDiary)
+      if (result) {
+        setPreviewDiary(newDiary)
+      } else {
+        setSaveError('保存失败，请重试')
+      }
+    } catch (err) {
+      setSaveError('保存失败，请重试')
+      console.error('保存日记失败:', err)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleContinue = () => {
     setPreviewDiary(null)
+    setSaveError('')
   }
 
   return (
@@ -36,7 +54,19 @@ function CardGenerator({ onSave }) {
       {!previewDiary ? (
         <div className="generator-layout">
           <div className="generator-form">
-            <DiaryInput onSubmit={handleSubmit} submitText="生成卡片" />
+            {saveError && (
+              <div style={{
+                background: '#FFE4E1',
+                color: '#D4706A',
+                padding: '12px 16px',
+                borderRadius: 12,
+                marginBottom: 20,
+                fontSize: 14
+              }}>
+                {saveError}
+              </div>
+            )}
+            <DiaryInput onSubmit={handleSubmit} submitText={saving ? '保存中...' : '生成卡片'} />
           </div>
           <div className="generator-preview">
             <h3 style={{ fontFamily: 'ZCOOL XiaoWei, serif', color: 'var(--pink-deep)', marginBottom: '20px' }}>
