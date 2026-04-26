@@ -17,7 +17,7 @@ function AuthPage({ onLogin }) {
     setError('')
 
     try {
-      const endpoint = isLogin ? '/auth/login' : '/auth/register'
+      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register'
       const res = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
