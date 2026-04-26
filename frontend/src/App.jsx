@@ -57,11 +57,14 @@ function App() {
   }
 
   const handleLogin = (newToken, newUserId, newUsername) => {
+    // 清除旧用户的日记名字，新用户需要重新命名
+    localStorage.removeItem('diary-owner-name')
+    setOwnerName('')
+
     setToken(newToken)
     setUserId(newUserId)
     setUsername(newUsername)
     fetchDiaries()
-    fetchUserInfo()
   }
 
   const handleLogout = () => {
