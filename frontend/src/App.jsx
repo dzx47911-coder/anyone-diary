@@ -93,14 +93,16 @@ function App() {
       })
       if (res.ok) {
         const savedDiary = await res.json()
-        const newDiaries = [savedDiary, ...diaries]
-        setDiaries(newDiaries)
+        // 使用函数式更新，确保使用最新的 diaries 状态
+        setDiaries(prevDiaries => [savedDiary, ...prevDiaries])
         return savedDiary
+      } else {
+        console.error('保存失败，服务器返回:', res.status)
       }
     } catch (err) {
       console.error('保存日记失败:', err)
     }
-    return diary
+    return null  // 返回 null 表示失败
   }
 
   const deleteDiary = async (diaryId) => {
@@ -109,8 +111,8 @@ function App() {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       })
-      const newDiaries = diaries.filter(d => d.id !== diaryId)
-      setDiaries(newDiaries)
+      // 使用函数式更新
+      setDiaries(prevDiaries => prevDiaries.filter(d => d.id !== diaryId))
     } catch (err) {
       console.error('删除日记失败:', err)
     }

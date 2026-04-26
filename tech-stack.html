@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小董日记 - 技术栈总结</title>
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Noto Sans SC', sans-serif;
+      background: linear-gradient(135deg, #FFF8F0 0%, #FFE4E1 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      font-family: 'ZCOOL XiaoWei', serif;
+      color: #FFB6C1;
+      font-size: 2.5rem;
+      margin-bottom: 40px;
+    }
+    h2 {
+      color: #E8A0B0;
+      font-size: 1.3rem;
+      margin: 30px 0 15px;
+      padding-left: 15px;
+      border-left: 4px solid #FFB6C1;
+    }
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 32px rgba(255, 182, 193, 0.2);
+    }
+    .card h3 {
+      color: #FFB6C1;
+      font-size: 1.1rem;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tag {
+      display: inline-block;
+      background: linear-gradient(135deg, #FFE4E1, #FFF8F0);
+      color: #D4706A;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+    .desc {
+      color: #666;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+    .status {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      margin-left: 8px;
+    }
+    .status-used {
+      background: #D4EDDA;
+      color: #155724;
+    }
+    .status-planned {
+      background: #FFF3CD;
+      color: #856404;
+    }
+    .status-abandoned {
+      background: #F8D7DA;
+      color: #721C24;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .summary {
+      background: linear-gradient(135deg, #FFB6C1, #FFC0CB);
+      color: #fff;
+      padding: 30px;
+      border-radius: 20px;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .summary h2 {
+      color: #fff;
+      border: none;
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+    }
+    .summary p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+    .emoji {
+      font-size: 1.5rem;
+      margin-right: 8px;
+    }
+    .architecture {
+      background: #FFF8F0;
+      border: 2px dashed #FFE4E1;
+      border-radius: 16px;
+      padding: 20px;
+      margin-top: 20px;
+      text-align: center;
+    }
+    .arch-item {
+      display: inline-block;
+      padding: 10px 20px;
+      margin: 5px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(255, 182, 193, 0.3);
+    }
+    .arch-arrow {
+      display: inline-block;
+      color: #FFB6C1;
+      font-size: 1.2rem;
+      margin: 0 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🌸 小董日记 - 技术栈总结</h1>
+
+    <div class="summary">
+      <h2>🎯 项目架构</h2>
+      <p>用户浏览器 ←→ Vercel前端 ←→ Render后端 ←→ Neon数据库</p>
+      <div class="architecture" style="background: transparent; border: none; box-shadow: none;">
+        <div class="arch-item">👤 用户</div>
+        <span class="arch-arrow">→</span>
+        <div class="arch-item">🌐 Vercel 前端</div>
+        <span class="arch-arrow">→</span>
+        <div class="arch-item">⚙️ Render 后端</div>
+        <span class="arch-arrow">→</span>
+        <div class="arch-item">🗄️ Neon 数据库</div>
+      </div>
+    </div>
+
+    <h2>📱 前端技术</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>⚛️ React + Vite</h3>
+        <span class="tag">UI框架</span>
+        <span class="tag">构建工具</span>
+        <p class="desc">用于构建用户界面，组件化开发，支持热更新</p>
+      </div>
+      <div class="card">
+        <h3>🎨 CSS 样式</h3>
+        <span class="tag">手账风格</span>
+        <span class="tag">黏土风</span>
+        <p class="desc">粉嫩配色、圆角、柔和阴影、站酷字体</p>
+      </div>
+      <div class="card">
+        <h3>📦 localStorage</h3>
+        <span class="tag">本地存储</span>
+        <span class="status status-used">已弃用</span>
+        <p class="desc">早期版本使用，现已迁移至云端</p>
+      </div>
+      <div class="card">
+        <h3>🚀 Vercel</h3>
+        <span class="tag">前端托管</span>
+        <span class="status status-used">使用中</span>
+        <p class="desc">静态网站部署，自动构建HTTPS，自定义域名 doiandoian.xyz</p>
+      </div>
+    </div>
+
+    <h2>⚙️ 后端技术</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>🟢 Node.js + Express</h3>
+        <span class="tag">运行环境</span>
+        <span class="tag">Web框架</span>
+        <p class="desc">处理API请求、路由、中间件</p>
+      </div>
+      <div class="card">
+        <h3>🔐 JWT + bcryptjs</h3>
+        <span class="tag">认证</span>
+        <span class="tag">加密</span>
+        <p class="desc">用户登录Token、密码哈希加密</p>
+      </div>
+      <div class="card">
+        <h3>🗄️ PostgreSQL (Neon)</h3>
+        <span class="tag">数据库</span>
+        <span class="status status-used">使用中</span>
+        <p class="desc">云端关系型数据库，数据持久化存储</p>
+      </div>
+      <div class="card">
+        <h3>🎯 Render</h3>
+        <span class="tag">后端托管</span>
+        <span class="status status-used">使用中</span>
+        <p class="desc">Node.js应用部署，自动重启，免费额度</p>
+      </div>
+    </div>
+
+    <h2>🔧 辅助工具 <span class="status status-used" style="font-size: 0.8rem; vertical-align: middle;">使用中</span></h2>
+    <div class="grid">
+      <div class="card">
+        <h3>📁 GitHub</h3>
+        <span class="tag">代码仓库</span>
+        <p class="desc">代码版本管理，Vercel/Render自动部署触发</p>
+      </div>
+      <div class="card">
+        <h3>🔤 ZCOOL 字体</h3>
+        <span class="tag">站酷快乐体</span>
+        <span class="tag">站酷小薇体</span>
+        <p class="desc">中文手写风格字体，用于标题和正文</p>
+      </div>
+      <div class="card">
+        <h3>🎭 路由</h3>
+        <span class="tag">react-router</span>
+        <p class="desc">页面路由：首页、日历、写日记、时间轴、总结</p>
+      </div>
+    </div>
+
+    <h2>❌ 曾尝试但未采用</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>🚂 Railway <span class="status status-abandoned">已放弃</span></h3>
+        <span class="tag">后端托管</span>
+        <p class="desc">配置复杂，端口问题，环境变量读取失败</p>
+      </div>
+      <div class="card">
+        <h3>🔷 sql.js <span class="status status-abandoned">已替换</span></h3>
+        <span class="tag">本地数据库</span>
+        <p class="desc">前端SQLite，数据无法持久化</p>
+      </div>
+      <div class="card">
+        <h3>🌐 Netlify <span class="status status-abandoned">已放弃</span></h3>
+        <span class="tag">前端托管</span>
+        <p class="desc">匿名部署受限，被墙访问困难</p>
+      </div>
+    </div>
+
+    <h2>📋 待实现功能</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>🖼️ ImgBB 头像上传 <span class="status status-planned">计划中</span></h3>
+        <span class="tag">云存储</span>
+        <p class="desc">用户自定义头像，ImgBB免费图床</p>
+      </div>
+      <div class="card">
+        <h3>📧 Resend 邮件服务 <span class="status status-planned">计划中</span></h3>
+        <span class="tag">邮件验证</span>
+        <p class="desc">忘记密码验证码发送</p>
+      </div>
+    </div>
+
+    <h2>📊 功能清单</h2>
+    <div class="card">
+      <h3>✨ 已实现功能</h3>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
+        <span class="tag">用户注册/登录</span>
+        <span class="tag">用户名+头像显示</span>
+        <span class="tag">写日记</span>
+        <span class="tag">月历视图</span>
+        <span class="tag">时间轴展示</span>
+        <span class="tag">日记总结</span>
+        <span class="tag">云端同步</span>
+        <span class="tag">多设备访问</span>
+        <span class="tag">修改日记本名称</span>
+        <span class="tag">退出登录确认</span>
+        <span class="tag">悬浮装饰动画</span>
+        <span class="tag">手账风格卡片</span>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px; color: #999; font-size: 0.9rem;">
+      <p>🌸 小董日记 - 用技术创造温暖 🌸</p>
+      <p style="margin-top: 10px;">最后更新: 2026年4月26日</p>
+    </div>
+  </div>
+</body>
+</html>
