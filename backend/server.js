@@ -23,16 +23,19 @@ app.use(express.json());
 async function initDatabase() {
   const client = await pool.connect();
   try {
+    await client.query(`DROP TABLE IF EXISTS diaries CASCADE`);
+    await client.query(`DROP TABLE IF EXISTS users CASCADE`);
     await client.query(`
-      CREATE TABLE IF NOT EXISTS users (
+      CREATE TABLE users (
         id SERIAL PRIMARY KEY,
         username TEXT UNIQUE NOT NULL,
         password_hash TEXT NOT NULL,
+        avatar TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
     await client.query(`
-      CREATE TABLE IF NOT EXISTS diaries (
+      CREATE TABLE diaries (
         id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL,
         date TEXT NOT NULL,
@@ -43,7 +46,7 @@ async function initDatabase() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    await client.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_user_date ON diaries(user_id, date)`);
+    await client.query(`CREATE UNIQUE INDEX idx_user_date ON diaries(user_id, date)`);
     console.log('数据库初始化完成');
   } finally {
     client.release();
