@@ -26,7 +26,7 @@ async function initDatabase() {
     await client.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
-        email TEXT UNIQUE NOT NULL,
+        username TEXT UNIQUE NOT NULL,
         password_hash TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -63,23 +63,23 @@ const authenticate = (req, res, next) => {
 };
 
 app.post('/api/auth/register', async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ error: '请填写邮箱和密码' });
+  const { username, password } = req.body;
+  if (!username || !password) return res.status(400).json({ error: '请填写用户名和密码' });
 
   try {
-    const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    const existing = await pool.query('SELECT id FROM users WHERE username = $1', [username]);
     if (existing.rows.length > 0) {
-      return res.status(400).json({ error: '该邮箱已注册' });
+      return res.status(400).json({ error: '该用户名已注册' });
     }
 
     const hash = await bcrypt.hash(password, 10);
     const result = await pool.query(
-      'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id',
-      [email, hash]
+      'INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id',
+      [username, hash]
     );
     const userId = result.rows[0].id;
     const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: '30d' });
-    res.json({ token, userId });
+    res.json({ token, userId, username });
   } catch (err) {
     console.error('注册错误:', err);
     res.status(500).json({ error: '服务器错误' });
@@ -87,18 +87,18 @@ app.post('/api/auth/register', async (req, res) => {
 });
 
 app.post('/api/auth/login', async (req, res) => {
-  const { email, password } = req.body;
+  const { username, password } = req.body;
   try {
-    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
     if (result.rows.length === 0) {
-      return res.status(401).json({ error: '邮箱或密码错误' });
+      return res.status(401).json({ error: '用户名或密码错误' });
     }
     const user = result.rows[0];
     const valid = await bcrypt.compare(password, user.password_hash);
-    if (!valid) return res.status(401).json({ error: '邮箱或密码错误' });
+    if (!valid) return res.status(401).json({ error: '用户名或密码错误' });
 
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '30d' });
-    res.json({ token, userId: user.id });
+    res.json({ token, userId: user.id, username: user.username });
   } catch (err) {
     console.error('登录错误:', err);
     res.status(500).json({ error: '服务器错误' });

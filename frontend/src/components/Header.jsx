@@ -7,7 +7,7 @@ const Icon = ({ name, size = 20 }) => (
   </svg>
 )
 
-function Header({ ownerName, onEditName, onLogout }) {
+function Header({ ownerName, username, onEditName, onLogout }) {
   const location = useLocation()
 
   return (
@@ -33,6 +33,50 @@ function Header({ ownerName, onEditName, onLogout }) {
         >
           ✏️
         </button>
+      </h1>
+      <nav className="header-nav">
+        {username && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            marginRight: 16,
+            padding: '6px 12px',
+            background: 'rgba(255,182,193,0.2)',
+            borderRadius: 20
+          }}>
+            <div style={{
+              width: 28,
+              height: 28,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #FFB6C1, #FFC0CB)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 14,
+              color: '#fff',
+              fontWeight: 'bold'
+            }}>
+              {username.charAt(0).toUpperCase()}
+            </div>
+            <span style={{ fontSize: 14, color: '#FFB6C1' }}>{username}</span>
+          </div>
+        )}
+        <Link to="/" className={location.pathname === '/' ? 'active' : ''}>
+          <Icon name="home" />首页
+        </Link>
+        <Link to="/generate" className={location.pathname === '/generate' ? 'active' : ''}>
+          <Icon name="edit" />写日记
+        </Link>
+        <Link to="/calendar" className={location.pathname === '/calendar' ? 'active' : ''}>
+          <Icon name="calendar" />日历
+        </Link>
+        <Link to="/summary" className={location.pathname === '/summary' ? 'active' : ''}>
+          <Icon name="summary" />总结
+        </Link>
+        <Link to="/timeline" className={location.pathname === '/timeline' ? 'active' : ''}>
+          <Icon name="time" />时间轴
+        </Link>
         <button
           onClick={onLogout}
           style={{
@@ -49,23 +93,6 @@ function Header({ ownerName, onEditName, onLogout }) {
         >
           🚪
         </button>
-      </h1>
-      <nav className="header-nav">
-        <Link to="/" className={location.pathname === '/' ? 'active' : ''}>
-          <Icon name="home" />首页
-        </Link>
-        <Link to="/generate" className={location.pathname === '/generate' ? 'active' : ''}>
-          <Icon name="edit" />写日记
-        </Link>
-        <Link to="/calendar" className={location.pathname === '/calendar' ? 'active' : ''}>
-          <Icon name="calendar" />日历
-        </Link>
-        <Link to="/summary" className={location.pathname === '/summary' ? 'active' : ''}>
-          <Icon name="summary" />总结
-        </Link>
-        <Link to="/timeline" className={location.pathname === '/timeline' ? 'active' : ''}>
-          <Icon name="time" />时间轴
-        </Link>
       </nav>
     </header>
   )

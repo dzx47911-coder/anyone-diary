@@ -14,6 +14,7 @@ const API_URL = 'https://anyone-diary.onrender.com'
 function App() {
   const [token, setToken] = useState(() => localStorage.getItem('diary-token'))
   const [userId, setUserId] = useState(() => localStorage.getItem('diary-user-id'))
+  const [username, setUsername] = useState(() => localStorage.getItem('diary-username'))
   const [diaries, setDiaries] = useState([])
   const [ownerName, setOwnerName] = useState('')
   const [showEditNameModal, setShowEditNameModal] = useState(false)
@@ -55,9 +56,10 @@ function App() {
     }
   }
 
-  const handleLogin = (newToken, newUserId) => {
+  const handleLogin = (newToken, newUserId, newUsername) => {
     setToken(newToken)
     setUserId(newUserId)
+    setUsername(newUsername)
     fetchDiaries()
     fetchUserInfo()
   }
@@ -65,8 +67,10 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem('diary-token')
     localStorage.removeItem('diary-user-id')
+    localStorage.removeItem('diary-username')
     setToken(null)
     setUserId(null)
+    setUsername(null)
     setDiaries([])
   }
 
@@ -141,6 +145,7 @@ function App() {
         }} />
         <Header
           ownerName={ownerName}
+          username={username}
           onEditName={() => setShowEditNameModal(true)}
           onLogout={handleLogout}
         />

@@ -4,7 +4,7 @@ const API_URL = 'https://anyone-diary.onrender.com'
 
 function AuthPage({ onLogin }) {
   const [isLogin, setIsLogin] = useState(true)
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -21,7 +21,7 @@ function AuthPage({ onLogin }) {
       const res = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ username, password })
       })
 
       const data = await res.json()
@@ -32,7 +32,8 @@ function AuthPage({ onLogin }) {
 
       localStorage.setItem('diary-token', data.token)
       localStorage.setItem('diary-user-id', data.userId)
-      onLogin(data.token, data.userId)
+      localStorage.setItem('diary-username', username)
+      onLogin(data.token, data.userId, username)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -87,13 +88,15 @@ function AuthPage({ onLogin }) {
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: 20 }}>
             <label style={{ display: 'block', marginBottom: 8, color: '#666', fontSize: 14 }}>
-              邮箱
+              用户名
             </label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
+              minLength={3}
+              maxLength={20}
               style={{
                 width: '100%',
                 padding: '14px 16px',
