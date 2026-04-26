@@ -1,38 +1,21 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect } from 'react'
 
 function NameModal({ onSave, isEdit = false }) {
   const [name, setName] = useState('')
-  const [isOpen, setIsOpen] = useState(false)
-
-  const checkAndOpen = useCallback(() => {
-    if (isEdit) {
-      const savedName = localStorage.getItem('diary-owner-name') || ''
-      setName(savedName)
-      setIsOpen(true)
-    } else {
-      const savedName = localStorage.getItem('diary-owner-name')
-      if (!savedName) {
-        setIsOpen(true)
-      } else {
-        onSave(savedName)
-      }
-    }
-  }, [isEdit, onSave])
 
   useEffect(() => {
-    checkAndOpen()
-  }, [checkAndOpen])
+    if (isEdit) {
+      setName(localStorage.getItem('diary-owner-name') || '')
+    }
+  }, [isEdit])
 
   const handleSubmit = (e) => {
     e.preventDefault()
     if (name.trim()) {
       localStorage.setItem('diary-owner-name', name.trim())
       onSave(name.trim())
-      setIsOpen(false)
     }
   }
-
-  if (!isOpen) return null
 
   return (
     <div className="name-modal-overlay">

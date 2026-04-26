@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Header from './components/Header'
 import NameModal from './components/NameModal'
 import AuthPage from './pages/AuthPage'
@@ -16,14 +16,13 @@ function App() {
   const [userId, setUserId] = useState(() => localStorage.getItem('diary-user-id'))
   const [username, setUsername] = useState(() => localStorage.getItem('diary-username'))
   const [diaries, setDiaries] = useState([])
-  const [ownerName, setOwnerName] = useState('')
+  const [ownerName, setOwnerName] = useState(() => localStorage.getItem('diary-owner-name') || '')
   const [showEditNameModal, setShowEditNameModal] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (token) {
       fetchDiaries()
-      fetchUserInfo()
     } else {
       setLoading(false)
     }
@@ -31,8 +30,9 @@ function App() {
 
   const fetchDiaries = async () => {
     try {
-      const res = await fetch(`${API_URL}/diaries`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const currentToken = localStorage.getItem('diary-token')
+      const res = await fetch(`${API_URL}/api/diaries`, {
+        headers: { 'Authorization': `Bearer ${currentToken}` }
       })
       if (res.ok) {
         const data = await res.json()
@@ -47,24 +47,12 @@ function App() {
     }
   }
 
-  const fetchUserInfo = async () => {
-    try {
-      const savedName = localStorage.getItem('diary-owner-name')
-      if (savedName) setOwnerName(savedName)
-    } catch (err) {
-      console.error('获取用户信息失败:', err)
-    }
-  }
-
   const handleLogin = (newToken, newUserId, newUsername) => {
-    // 清除旧用户的日记名字，新用户需要重新命名
     localStorage.removeItem('diary-owner-name')
     setOwnerName('')
-
     setToken(newToken)
     setUserId(newUserId)
     setUsername(newUsername)
-    fetchDiaries()
   }
 
   const handleLogout = () => {
@@ -77,13 +65,9 @@ function App() {
     setDiaries([])
   }
 
-  const saveDiaries = async (newDiaries) => {
-    setDiaries(newDiaries)
-  }
-
   const addDiary = async (diary) => {
     try {
-      const res = await fetch(`${API_URL}/diaries`, {
+      const res = await fetch(`${API_URL}/api/diaries`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -93,8 +77,7 @@ function App() {
       })
       if (res.ok) {
         const savedDiary = await res.json()
-        // 使用函数式更新，确保使用最新的 diaries 状态
-        setDiaries(prevDiaries => [savedDiary, ...prevDiaries])
+        setDiaries(prev => [savedDiary, ...prev.filter(d => d.date !== savedDiary.date)])
         return savedDiary
       } else {
         console.error('保存失败，服务器返回:', res.status)
@@ -102,17 +85,18 @@ function App() {
     } catch (err) {
       console.error('保存日记失败:', err)
     }
-    return null  // 返回 null 表示失败
+    return null
   }
 
   const deleteDiary = async (diaryId) => {
     try {
-      await fetch(`${API_URL}/diaries/${diaryId}`, {
+      const res = await fetch(`${API_URL}/api/diaries/${diaryId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       })
-      // 使用函数式更新
-      setDiaries(prevDiaries => prevDiaries.filter(d => d.id !== diaryId))
+      if (res.ok) {
+        setDiaries(prev => prev.filter(d => d.id !== diaryId))
+      }
     } catch (err) {
       console.error('删除日记失败:', err)
     }
@@ -143,11 +127,15 @@ function App() {
   return (
     <BrowserRouter>
       <div className="diary-app">
-        <NameModal onSave={handleNameSave} />
-        <NameModal isEdit={showEditNameModal} onSave={(name) => {
-          handleNameSave(name)
-          setShowEditNameModal(false)
-        }} />
+        {(showEditNameModal || !ownerName) && (
+          <NameModal
+            isEdit={showEditNameModal}
+            onSave={(name) => {
+              handleNameSave(name)
+              setShowEditNameModal(false)
+            }}
+          />
+        )}
         <Header
           ownerName={ownerName}
           username={username}

@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const JWT_SECRET = 'xiaodong-diary-secret-2026';
+const JWT_SECRET = process.env.JWT_SECRET || 'xiaodong-diary-secret-2026';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -23,10 +23,8 @@ app.use(express.json());
 async function initDatabase() {
   const client = await pool.connect();
   try {
-    await client.query(`DROP TABLE IF EXISTS diaries CASCADE`);
-    await client.query(`DROP TABLE IF EXISTS users CASCADE`);
     await client.query(`
-      CREATE TABLE users (
+      CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         username TEXT UNIQUE NOT NULL,
         password_hash TEXT NOT NULL,
@@ -35,22 +33,63 @@ async function initDatabase() {
       )
     `);
     await client.query(`
-      CREATE TABLE diaries (
+      CREATE TABLE IF NOT EXISTS diaries (
         id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL,
         date TEXT NOT NULL,
-        weather TEXT,
-        mood TEXT,
+        moods JSONB,
+        mood_labels JSONB,
+        custom_moods JSONB,
         content TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    await client.query(`CREATE UNIQUE INDEX idx_user_date ON diaries(user_id, date)`);
+    await client.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_user_date ON diaries(user_id, date)
+    `);
+
+    // 自动迁移：如果存在旧的 weather/mood 列，删除并添加新列
+    const cols = await client.query(`
+      SELECT column_name FROM information_schema.columns
+      WHERE table_name = 'diaries'
+    `);
+    const colNames = cols.rows.map(r => r.column_name);
+
+    if (colNames.includes('weather')) {
+      await client.query(`ALTER TABLE diaries DROP COLUMN weather`);
+    }
+    if (colNames.includes('mood')) {
+      await client.query(`ALTER TABLE diaries DROP COLUMN mood`);
+    }
+    if (!colNames.includes('moods')) {
+      await client.query(`ALTER TABLE diaries ADD COLUMN moods JSONB`);
+    }
+    if (!colNames.includes('mood_labels')) {
+      await client.query(`ALTER TABLE diaries ADD COLUMN mood_labels JSONB`);
+    }
+    if (!colNames.includes('custom_moods')) {
+      await client.query(`ALTER TABLE diaries ADD COLUMN custom_moods JSONB`);
+    }
+
     console.log('数据库初始化完成');
   } finally {
     client.release();
   }
+}
+
+function formatDiary(row) {
+  return {
+    id: row.id,
+    user_id: row.user_id,
+    date: row.date,
+    moods: row.moods,
+    moodLabels: row.mood_labels,
+    customMoods: row.custom_moods,
+    content: row.content,
+    created_at: row.created_at,
+    updated_at: row.updated_at
+  };
 }
 
 const authenticate = (req, res, next) => {
@@ -114,7 +153,7 @@ app.get('/api/diaries', authenticate, async (req, res) => {
       'SELECT * FROM diaries WHERE user_id = $1 ORDER BY date DESC',
       [req.userId]
     );
-    res.json(result.rows);
+    res.json(result.rows.map(formatDiary));
   } catch (err) {
     console.error('获取日记错误:', err);
     res.status(500).json({ error: '服务器错误' });
@@ -127,7 +166,7 @@ app.get('/api/diaries/:date', authenticate, async (req, res) => {
       'SELECT * FROM diaries WHERE user_id = $1 AND date = $2',
       [req.userId, req.params.date]
     );
-    res.json(result.rows[0] || null);
+    res.json(result.rows[0] ? formatDiary(result.rows[0]) : null);
   } catch (err) {
     console.error('获取日记错误:', err);
     res.status(500).json({ error: '服务器错误' });
@@ -135,7 +174,7 @@ app.get('/api/diaries/:date', authenticate, async (req, res) => {
 });
 
 app.post('/api/diaries', authenticate, async (req, res) => {
-  const { date, weather, mood, content } = req.body;
+  const { date, moods, moodLabels, customMoods, content } = req.body;
   if (!date) return res.status(400).json({ error: '日期不能为空' });
 
   try {
@@ -146,16 +185,18 @@ app.post('/api/diaries', authenticate, async (req, res) => {
 
     if (check.rows.length > 0) {
       const result = await pool.query(
-        'UPDATE diaries SET weather = $1, mood = $2, content = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4 RETURNING *',
-        [weather, mood, content, check.rows[0].id]
+        `UPDATE diaries SET moods = $1, mood_labels = $2, custom_moods = $3,
+         content = $4, updated_at = CURRENT_TIMESTAMP WHERE id = $5 RETURNING *`,
+        [JSON.stringify(moods), JSON.stringify(moodLabels), JSON.stringify(customMoods), content, check.rows[0].id]
       );
-      res.json(result.rows[0]);
+      res.json(formatDiary(result.rows[0]));
     } else {
       const result = await pool.query(
-        'INSERT INTO diaries (user_id, date, weather, mood, content) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-        [req.userId, date, weather, mood, content]
+        `INSERT INTO diaries (user_id, date, moods, mood_labels, custom_moods, content)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        [req.userId, date, JSON.stringify(moods), JSON.stringify(moodLabels), JSON.stringify(customMoods), content]
       );
-      res.json(result.rows[0]);
+      res.json(formatDiary(result.rows[0]));
     }
   } catch (err) {
     console.error('保存日记错误:', err);
