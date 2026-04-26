@@ -45,9 +45,8 @@ async function initDatabase() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    await client.query(`
-      CREATE UNIQUE INDEX IF NOT EXISTS idx_user_date ON diaries(user_id, date)
-    `);
+    // 删除旧的唯一索引（允许同一天多篇日记）
+    await client.query(`DROP INDEX IF EXISTS idx_user_date`);
 
     // 自动迁移：如果存在旧的 weather/mood 列，删除并添加新列
     const cols = await client.query(`
@@ -71,6 +70,9 @@ async function initDatabase() {
     if (!colNames.includes('custom_moods')) {
       await client.query(`ALTER TABLE diaries ADD COLUMN custom_moods JSONB`);
     }
+    if (!colNames.includes('card_style')) {
+      await client.query(`ALTER TABLE diaries ADD COLUMN card_style TEXT DEFAULT 'classic'`);
+    }
 
     console.log('数据库初始化完成');
   } finally {
@@ -86,6 +88,7 @@ function formatDiary(row) {
     moods: row.moods,
     moodLabels: row.mood_labels,
     customMoods: row.custom_moods,
+    cardColor: row.card_style || '#FFB6C1',
     content: row.content,
     created_at: row.created_at,
     updated_at: row.updated_at
@@ -174,30 +177,16 @@ app.get('/api/diaries/:date', authenticate, async (req, res) => {
 });
 
 app.post('/api/diaries', authenticate, async (req, res) => {
-  const { date, moods, moodLabels, customMoods, content } = req.body;
+  const { date, moods, moodLabels, customMoods, cardColor, content } = req.body;
   if (!date) return res.status(400).json({ error: '日期不能为空' });
 
   try {
-    const check = await pool.query(
-      'SELECT id FROM diaries WHERE user_id = $1 AND date = $2',
-      [req.userId, date]
+    const result = await pool.query(
+      `INSERT INTO diaries (user_id, date, moods, mood_labels, custom_moods, content, card_style)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [req.userId, date, JSON.stringify(moods), JSON.stringify(moodLabels), JSON.stringify(customMoods), content, cardColor || '#FFB6C1']
     );
-
-    if (check.rows.length > 0) {
-      const result = await pool.query(
-        `UPDATE diaries SET moods = $1, mood_labels = $2, custom_moods = $3,
-         content = $4, updated_at = CURRENT_TIMESTAMP WHERE id = $5 RETURNING *`,
-        [JSON.stringify(moods), JSON.stringify(moodLabels), JSON.stringify(customMoods), content, check.rows[0].id]
-      );
-      res.json(formatDiary(result.rows[0]));
-    } else {
-      const result = await pool.query(
-        `INSERT INTO diaries (user_id, date, moods, mood_labels, custom_moods, content)
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-        [req.userId, date, JSON.stringify(moods), JSON.stringify(moodLabels), JSON.stringify(customMoods), content]
-      );
-      res.json(formatDiary(result.rows[0]));
-    }
+    res.json(formatDiary(result.rows[0]));
   } catch (err) {
     console.error('保存日记错误:', err);
     res.status(500).json({ error: '服务器错误' });
@@ -216,6 +205,6 @@ app.delete('/api/diaries/:id', authenticate, async (req, res) => {
 
 initDatabase().then(() => {
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`小董日记后端运行在 http://0.0.0.0:${PORT}`);
+    console.log(`Anyone diary 后端运行在 http://0.0.0.0:${PORT}`);
   });
 });
