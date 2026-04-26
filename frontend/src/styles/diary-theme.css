@@ -18,7 +18,7 @@
 }
 
 body {
-  font-family: 'Noto Sans SC', sans-serif;
+  font-family: 'ZCOOL XiaoWei', 'Noto Sans SC', serif;
   background: var(--cream);
   color: var(--text-dark);
   min-height: 100vh;
@@ -32,7 +32,7 @@ body {
 
 .diary-main {
   flex: 1;
-  padding: 20px;
+  padding: 15px;
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
@@ -80,15 +80,20 @@ body {
 
 .header-nav {
   display: flex;
-  gap: 15px;
+  gap: 8px;
+  align-items: center;
 }
 
 .header-nav a {
   text-decoration: none;
   color: var(--text-dark);
-  font-size: 1rem;
-  padding: 10px 20px;
-  border-radius: 15px;
+  font-size: 0.85rem;
+  padding: 8px 14px;
+  border-radius: 12px;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  height: 38px;
   background: linear-gradient(145deg, #ffffff, #fff0f3);
   box-shadow:
     4px 4px 10px rgba(232, 160, 176, 0.2),
@@ -232,8 +237,8 @@ body {
 .diary-card {
   background: linear-gradient(145deg, #ffffff, #fff8f5);
   border-radius: 25px;
-  padding: 35px 40px;
-  margin: 20px 0;
+  padding: 28px 32px;
+  margin: 15px 0;
   position: relative;
   box-shadow:
     10px 10px 30px rgba(232, 160, 176, 0.2),
@@ -309,16 +314,16 @@ body {
 
 /* ===== Page container ===== */
 .page-container {
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 25px;
+  padding: 15px;
   position: relative;
   z-index: 1;
 }
 
 /* ===== Form group ===== */
 .form-group {
-  margin-bottom: 25px;
+  margin-bottom: 18px;
 }
 
 .form-group label {
@@ -338,16 +343,16 @@ body {
 /* ===== Home greeting ===== */
 .home-greeting {
   text-align: center;
-  padding: 50px 20px;
+  padding: 25px 20px;
   position: relative;
   z-index: 1;
 }
 
 .home-greeting h1 {
   font-family: 'ZCOOL XiaoWei', serif;
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   color: var(--text-dark);
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 
 .home-greeting .date {
@@ -387,7 +392,9 @@ body {
 .calendar-container {
   background: linear-gradient(145deg, #ffffff, #fff8f5);
   border-radius: 25px;
-  padding: 35px;
+  padding: 15px;
+  max-width: 500px;
+  margin: 0 auto;
   box-shadow:
     10px 10px 30px rgba(232, 160, 176, 0.15),
     -8px -8px 20px rgba(255, 255, 255, 0.9);
@@ -397,7 +404,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 15px;
 }
 
 .calendar-header h2 {
@@ -437,14 +444,14 @@ body {
 .calendar-weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
-  margin-bottom: 15px;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .calendar-weekday {
   text-align: center;
-  padding: 12px;
-  font-size: 0.95rem;
+  padding: 8px;
+  font-size: 0.85rem;
   color: var(--pink-deep);
   font-weight: 500;
 }
@@ -452,11 +459,11 @@ body {
 .calendar-days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
+  gap: 6px;
 }
 
 .calendar-day {
-  aspect-ratio: 1;
+  aspect-ratio: 1.2;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -492,11 +499,14 @@ body {
 }
 
 .calendar-day.has-diary::before {
-  content: '📝';
+  content: '✓';
   position: absolute;
   top: 2px;
-  right: 2px;
-  font-size: 0.7rem;
+  right: 4px;
+  font-size: 0.75rem;
+  font-family: 'ZCOOL KuaiLe', cursive;
+  color: var(--pink-main);
+  font-weight: bold;
 }
 
 /* ===== Diary preview ===== */

@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import Toast from './Toast'
+import { cardColors } from './DiaryCard'
 
 function DiaryInput({ onSubmit, initialData, submitText = '生成卡片' }) {
   const today = new Date().toISOString().split('T')[0]
@@ -7,10 +8,12 @@ function DiaryInput({ onSubmit, initialData, submitText = '生成卡片' }) {
   const [selectedMoods, setSelectedMoods] = useState(initialData?.moods || [])
   const [customMoods, setCustomMoods] = useState(initialData?.customMoods || [])
   const [content, setContent] = useState(initialData?.content || '')
+  const [cardColor, setCardColor] = useState(initialData?.cardColor || '#FFB6C1')
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState({ show: false, message: '' })
   const [showModal, setShowModal] = useState(false)
   const [newMoodText, setNewMoodText] = useState('')
+  const [showColorPicker, setShowColorPicker] = useState(false)
 
   const defaultMoods = [
     { id: 'happy', label: '😊 幸福', emoji: '😊' },
@@ -55,7 +58,7 @@ function DiaryInput({ onSubmit, initialData, submitText = '生成卡片' }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!content.trim() || selectedMoods.length === 0) return
+    if (!content.trim()) return
 
     setLoading(true)
     const selectedMoodLabels = selectedMoods.map(id => {
@@ -67,6 +70,7 @@ function DiaryInput({ onSubmit, initialData, submitText = '生成卡片' }) {
       moods: selectedMoods,
       moodLabels: selectedMoodLabels,
       customMoods,
+      cardColor,
       content
     })
     setLoading(false)
@@ -87,6 +91,78 @@ function DiaryInput({ onSubmit, initialData, submitText = '生成卡片' }) {
             className="diary-input"
             value={date}
             onChange={(e) => setDate(e.target.value)}
+          />
+        </div>
+
+        <div className="form-group">
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <svg style={{ width: 18, height: 18, verticalAlign: 'middle', marginRight: 6 }}>
+              <use xlinkHref="#icon-edit"></use>
+            </svg>
+            日记内容
+            <div style={{ position: 'relative', marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: '0.8rem', color: '#bbb' }}>颜色</span>
+              <div
+                onClick={(e) => { e.stopPropagation(); setShowColorPicker(!showColorPicker) }}
+                title="选择卡片颜色"
+                style={{
+                  width: 26,
+                  height: 26,
+                  borderRadius: '50%',
+                  background: cardColor,
+                  cursor: 'pointer',
+                  boxShadow: `0 2px 8px ${cardColor}66`,
+                  transition: 'all 0.2s ease',
+                }}
+              />
+              {showColorPicker && (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    position: 'absolute',
+                    top: 34,
+                    right: 0,
+                    background: '#fff',
+                    borderRadius: 16,
+                    padding: 14,
+                    display: 'flex',
+                    gap: 10,
+                    flexWrap: 'wrap',
+                    width: 200,
+                    boxShadow: '0 8px 30px rgba(0,0,0,0.12)',
+                    zIndex: 10,
+                  }}
+                >
+                  {cardColors.map(c => (
+                    <div
+                      key={c.color}
+                      onClick={() => { setCardColor(c.color); setShowColorPicker(false) }}
+                      title={c.name}
+                      style={{
+                        width: 30,
+                        height: 30,
+                        borderRadius: '50%',
+                        background: c.color,
+                        cursor: 'pointer',
+                        border: 'none',
+                        boxShadow: cardColor === c.color
+                          ? `0 0 0 3px ${c.color}88, 0 4px 12px ${c.color}66`
+                          : `0 2px 4px ${c.color}33`,
+                        transition: 'all 0.2s ease',
+                        transform: cardColor === c.color ? 'scale(1.2)' : 'scale(1)',
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </label>
+          <textarea
+            className="diary-input diary-textarea"
+            placeholder="今天发生了什么让你开心的事吗？"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            onClick={() => setShowColorPicker(false)}
           />
         </div>
 
@@ -120,25 +196,10 @@ function DiaryInput({ onSubmit, initialData, submitText = '生成卡片' }) {
           </div>
         </div>
 
-        <div className="form-group">
-          <label>
-            <svg style={{ width: 18, height: 18, verticalAlign: 'middle', marginRight: 6 }}>
-              <use xlinkHref="#icon-edit"></use>
-            </svg>
-            日记内容
-          </label>
-          <textarea
-            className="diary-input diary-textarea"
-            placeholder="今天发生了什么让你开心的事吗？"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-          />
-        </div>
-
         <button
           type="submit"
           className="diary-btn"
-          disabled={loading || !content.trim() || selectedMoods.length === 0}
+          disabled={loading || !content.trim()}
         >
           {loading ? '保存中...' : submitText}
         </button>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-function NameModal({ onSave, isEdit = false }) {
+function NameModal({ onSave, onClose, isEdit = false }) {
   const [name, setName] = useState('')
 
   useEffect(() => {
@@ -19,7 +19,31 @@ function NameModal({ onSave, isEdit = false }) {
 
   return (
     <div className="name-modal-overlay">
-      <div className="name-modal">
+      <div className="name-modal" style={{ position: 'relative' }}>
+        {isEdit && onClose && (
+          <button
+            onClick={onClose}
+            style={{
+              position: 'absolute',
+              top: 16,
+              right: 16,
+              background: 'none',
+              border: '2px solid var(--pink-main)',
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--pink-main)',
+              fontSize: 16,
+            }}
+          >
+            ✕
+          </button>
+        )}
+
         <div className="name-modal-decoration">
           <span>🌸</span>
           <span>✨</span>

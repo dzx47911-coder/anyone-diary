@@ -141,6 +141,13 @@ export const iconSprite = `
     <circle cx="16" cy="6" r="1" fill="#E8A0B0"/>
     <text x="12" y="16" text-anchor="middle" font-size="8" fill="#E8A0B0" font-family="sans-serif">📅</text>
   </symbol>
+
+  <!-- 搜索/放大镜 -->
+  <symbol id="icon-search" viewBox="0 0 24 24">
+    <circle cx="11" cy="11" r="7" fill="none" stroke="#FFB6C1" stroke-width="1.5"/>
+    <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="#E8A0B0" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="11" cy="11" r="3" fill="#FFE5A0" opacity="0.3"/>
+  </symbol>
 </svg>
 `
 
@@ -148,5 +155,5 @@ export const iconNames = [
   'home', 'calendar', 'edit', 'heart', 'star', 'flower',
   'bookmark', 'tag', 'arrow-right', 'arrow-left',
   'close', 'plus', 'check', 'camera', 'chart',
-  'notebook', 'tape', 'pin', 'month'
+  'notebook', 'tape', 'pin', 'month', 'search'
 ]

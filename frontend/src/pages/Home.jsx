@@ -46,7 +46,7 @@ function Home({ diaries }) {
       {diaries.length > 0 && (
         <div style={{ textAlign: 'center', marginTop: '40px' }}>
           <Link
-            to="/calendar"
+            to="/timeline"
             style={{
               color: 'var(--pink-deep)',
               textDecoration: 'none',
@@ -57,7 +57,7 @@ function Home({ diaries }) {
             }}
           >
             <svg style={{ width: 18, height: 18 }}>
-              <use xlinkHref="#icon-calendar"></use>
+              <use xlinkHref="#icon-notebook"></use>
             </svg>
             查看 {diaries.length} 篇日记
           </Link>

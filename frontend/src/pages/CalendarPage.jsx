@@ -1,14 +1,20 @@
-import React, { useState } from 'react'
-import { useSearchParams, Link } from 'react-router-dom'
+import React, { useState, useRef } from 'react'
+import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import DiaryCard from '../components/DiaryCard'
+import { exportDiaryAsImage } from '../utils/exportDiary'
 
 function CalendarPage({ diaries, onDelete }) {
+  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState(searchParams.get('date'))
   const [selectedDiaries, setSelectedDiaries] = useState([])
   const [showModal, setShowModal] = useState(false)
   const [hoveredDiaryId, setHoveredDiaryId] = useState(null)
+  const [exporting, setExporting] = useState(false)
+  const [exportConfirmId, setExportConfirmId] = useState(null)
+  const [emptyDatePopup, setEmptyDatePopup] = useState(null)
+  const cardRefs = useRef({})
 
   const year = currentMonth.getFullYear()
   const month = currentMonth.getMonth()
@@ -28,9 +34,12 @@ function CalendarPage({ diaries, onDelete }) {
   const handleDateClick = (date) => {
     const diariesForDate = getDiariesForDate(date)
     if (diariesForDate.length > 0) {
+      setEmptyDatePopup(null)
       setSelectedDate(date)
       setSelectedDiaries(diariesForDate)
       setShowModal(true)
+    } else {
+      setEmptyDatePopup(date)
     }
   }
 
@@ -146,8 +155,8 @@ function CalendarPage({ diaries, onDelete }) {
               <div
                 key={i}
                 className={`calendar-day ${!d.isCurrentMonth ? 'other-month' : ''} ${isToday ? 'today' : ''} ${hasDiary ? 'has-diary' : ''}`}
-                onClick={() => d.isCurrentMonth && hasDiary && handleDateClick(dateStr)}
-                style={d.isCurrentMonth && hasDiary ? { cursor: 'pointer' } : {}}
+                onClick={() => d.isCurrentMonth && handleDateClick(dateStr)}
+                style={d.isCurrentMonth ? { cursor: 'pointer' } : {}}
               >
                 {d.day}
               </div>
@@ -155,9 +164,9 @@ function CalendarPage({ diaries, onDelete }) {
           })}
         </div>
 
-        <div style={{ marginTop: '20px', fontSize: '0.9rem', color: 'var(--pink-deep)', display: 'flex', gap: '15px', justifyContent: 'center' }}>
+        <div style={{ marginTop: '20px', fontSize: '0.9rem', color: 'var(--pink-deep)', display: 'flex', gap: '15px', justifyContent: 'center', alignItems: 'center' }}>
           <span style={{ border: '2px solid var(--pink-main)', padding: '2px 8px', borderRadius: '5px' }}>今天</span>
-          <span>📝 有日记（点击查看）</span>
+          <span>共 {diaries.length} 篇日记</span>
         </div>
 
         <div style={{ textAlign: 'center', marginTop: '20px' }}>
@@ -178,10 +187,41 @@ function CalendarPage({ diaries, onDelete }) {
             <svg style={{ width: 18, height: 18 }}>
               <use xlinkHref="#icon-summary"></use>
             </svg>
-            查看月度总结
+            查看总结
           </Link>
         </div>
       </div>
+
+      {emptyDatePopup && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.3)', display: 'flex',
+          alignItems: 'center', justifyContent: 'center', zIndex: 100
+        }} onClick={() => setEmptyDatePopup(null)}>
+          <div style={{
+            background: '#fff', borderRadius: 20, padding: '30px 40px',
+            textAlign: 'center', boxShadow: '0 15px 50px rgba(0,0,0,0.12)',
+            position: 'relative'
+          }} onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => setEmptyDatePopup(null)}
+              style={{
+                position: 'absolute', top: 12, right: 12,
+                background: 'none', border: 'none', cursor: 'pointer',
+                fontSize: 16, color: '#ccc',
+              }}
+            >✕</button>
+            <p style={{ fontSize: 15, color: '#999', marginBottom: 16 }}>{emptyDatePopup} 暂无日记</p>
+            <button
+              className="diary-btn"
+              onClick={() => { setEmptyDatePopup(null); navigate('/generate') }}
+              style={{ padding: '10px 24px', fontSize: 14 }}
+            >
+              立即写一篇
+            </button>
+          </div>
+        </div>
+      )}
 
       {showModal && (
         <div
@@ -275,7 +315,7 @@ function CalendarPage({ diaries, onDelete }) {
                     position: 'relative',
                     background: 'white',
                     padding: '12px 12px 45px 12px',
-                    boxShadow: hoveredDiaryId === diary.id ? '8px 8px 25px rgba(0,0,0,0.2)' : '4px 4px 15px rgba(0,0,0,0.12)',
+                    boxShadow: '4px 4px 15px rgba(0,0,0,0.12)',
                     transform: `rotate(${(index % 2 === 0 ? 1 : -1) * (index + 1)}deg)`,
                     maxWidth: '280px',
                     width: '100%',
@@ -287,26 +327,24 @@ function CalendarPage({ diaries, onDelete }) {
                       onClick={() => handleDelete(diary.id)}
                       style={{
                         position: 'absolute',
-                        top: '-8px',
-                        right: '-8px',
-                        width: '28px',
-                        height: '28px',
+                        top: '-6px',
+                        right: '-6px',
+                        width: '22px',
+                        height: '22px',
                         borderRadius: '50%',
-                        border: '2px solid white',
-                        background: 'linear-gradient(145deg, #ff6b6b, #ee5a5a)',
+                        border: 'none',
+                        background: 'rgba(0,0,0,0.25)',
                         color: 'white',
-                        fontSize: '1rem',
-                        fontWeight: 'bold',
+                        fontSize: '0.7rem',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        boxShadow: '3px 3px 8px rgba(0,0,0,0.2)',
                         zIndex: 20,
-                        transition: 'all 0.2s ease'
+                        backdropFilter: 'blur(4px)',
                       }}
                     >
-                      ×
+                      ✕
                     </button>
                   )}
 
@@ -379,7 +417,7 @@ function CalendarPage({ diaries, onDelete }) {
                     fontSize: '0.7rem',
                     color: '#ccc'
                   }}>
-                    <span>📔 小董日记</span>
+                    <span>📔 Anyone diary</span>
                     <span>#{index + 1}</span>
                   </div>
                 </div>
@@ -387,8 +425,65 @@ function CalendarPage({ diaries, onDelete }) {
             </div>
 
             {selectedDiaries.map((diary, index) => (
-              <DiaryCard key={diary.id || index} diary={diary} />
+              <div key={diary.id || index} style={{ marginBottom: 20 }}>
+                <DiaryCard diary={diary} cardRef={el => cardRefs.current[diary.id] = el} />
+                <div style={{ textAlign: 'center', marginTop: 10 }}>
+                  <button
+                    className="diary-btn diary-btn-secondary"
+                    disabled={exporting}
+                    onClick={() => setExportConfirmId(diary.id)}
+                    style={{ padding: '8px 20px', fontSize: '0.85rem' }}
+                  >
+                    <svg style={{ width: 14, height: 14, verticalAlign: 'middle', marginRight: 4 }}>
+                      <use xlinkHref="#icon-camera"></use>
+                    </svg>
+                    {exporting ? '导出中...' : '导出图片'}
+                  </button>
+                </div>
+              </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {exportConfirmId && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.4)', display: 'flex',
+          alignItems: 'center', justifyContent: 'center', zIndex: 1001
+        }} onClick={() => setExportConfirmId(null)}>
+          <div style={{
+            background: '#fff', borderRadius: 20, padding: 30,
+            maxWidth: 300, textAlign: 'center',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.15)'
+          }} onClick={e => e.stopPropagation()}>
+            <p style={{ fontSize: 15, color: '#555', marginBottom: 24 }}>是否导出为图片？</p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+              <button
+                onClick={() => setExportConfirmId(null)}
+                style={{
+                  padding: '10px 24px', border: '2px solid #FFE4E1',
+                  borderRadius: 12, background: '#fff', cursor: 'pointer', fontSize: 14
+                }}
+              >取消</button>
+              <button
+                onClick={async () => {
+                  const id = exportConfirmId
+                  const diary = selectedDiaries.find(d => d.id === id)
+                  setExportConfirmId(null)
+                  setExporting(true)
+                  try {
+                    await exportDiaryAsImage(cardRefs.current[id], `diary-${diary?.date || 'export'}`, diary?.cardColor)
+                  } catch (err) { console.error(err) }
+                  setExporting(false)
+                }}
+                style={{
+                  padding: '10px 24px', border: 'none', borderRadius: 12,
+                  background: 'linear-gradient(135deg, #FFB6C1, #FFC0CB)',
+                  color: '#fff', cursor: 'pointer', fontSize: 14
+                }}
+              >确认导出</button>
+            </div>
           </div>
         </div>
       )}

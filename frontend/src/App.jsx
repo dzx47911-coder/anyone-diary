@@ -8,6 +8,7 @@ import CalendarPage from './pages/CalendarPage'
 import CardGenerator from './pages/CardGenerator'
 import SummaryPage from './pages/SummaryPage'
 import TimelinePage from './pages/TimelinePage'
+import SearchPage from './pages/SearchPage'
 
 const API_URL = 'https://anyone-diary.onrender.com'
 
@@ -77,7 +78,7 @@ function App() {
       })
       if (res.ok) {
         const savedDiary = await res.json()
-        setDiaries(prev => [savedDiary, ...prev.filter(d => d.date !== savedDiary.date)])
+        setDiaries(prev => [savedDiary, ...prev])
         return savedDiary
       } else {
         console.error('保存失败，服务器返回:', res.status)
@@ -134,6 +135,7 @@ function App() {
               handleNameSave(name)
               setShowEditNameModal(false)
             }}
+            onClose={() => setShowEditNameModal(false)}
           />
         )}
         <Header
@@ -149,6 +151,7 @@ function App() {
             <Route path="/generate" element={<CardGenerator onSave={addDiary} />} />
             <Route path="/summary" element={<SummaryPage diaries={diaries} />} />
             <Route path="/timeline" element={<TimelinePage diaries={diaries} />} />
+            <Route path="/search" element={<SearchPage diaries={diaries} />} />
           </Routes>
         </main>
       </div>

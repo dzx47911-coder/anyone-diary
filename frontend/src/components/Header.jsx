@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
-const Icon = ({ name, size = 20 }) => (
-  <svg style={{ width: size, height: size, verticalAlign: 'middle', marginRight: 6 }}>
+const Icon = ({ name, size = 16 }) => (
+  <svg style={{ width: size, height: size, verticalAlign: 'middle', marginRight: 4 }}>
     <use xlinkHref={`#icon-${name}`}></use>
   </svg>
 )
@@ -31,18 +31,21 @@ function Header({ ownerName, username, onEditName, onLogout }) {
           <button
             onClick={onEditName}
             style={{
-              marginLeft: 12,
+              marginLeft: 8,
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              fontSize: 14,
-              opacity: 0.6,
-              padding: '4px 8px',
+              padding: '4px',
               borderRadius: 4,
+              opacity: 0.5,
+              display: 'inline-flex',
+              alignItems: 'center',
             }}
             title="修改名称"
           >
-            ✏️
+            <svg style={{ width: 18, height: 18 }}>
+              <use xlinkHref="#icon-edit"></use>
+            </svg>
           </button>
         </h1>
         <nav className="header-nav">
@@ -87,6 +90,9 @@ function Header({ ownerName, username, onEditName, onLogout }) {
           </Link>
           <Link to="/timeline" className={location.pathname === '/timeline' ? 'active' : ''}>
             <Icon name="time" />时间轴
+          </Link>
+          <Link to="/search" className={location.pathname === '/search' ? 'active' : ''}>
+            <Icon name="search" />搜索
           </Link>
           <button
             onClick={handleLogout}
