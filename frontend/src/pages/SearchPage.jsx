@@ -103,7 +103,7 @@ function SearchPage({ diaries }) {
             <input type="date" className="diary-input" style={{ width: 'auto', padding: '10px 14px' }} value={dateTo} onChange={e => { setDateTo(e.target.value); setSearched(false) }} />
           </div>
           {(keyword || selectedMood || dateFrom || dateTo) && (
-            <button className="diary-btn diary-btn-secondary" onClick={clearFilters} style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
+            <button className="diary-btn diary-btn-secondary" onClick={clearFilters}>
               清除
             </button>
           )}

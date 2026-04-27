@@ -432,7 +432,6 @@ function CalendarPage({ diaries, onDelete }) {
                     className="diary-btn diary-btn-secondary"
                     disabled={exporting}
                     onClick={() => setExportConfirmId(diary.id)}
-                    style={{ padding: '8px 20px', fontSize: '0.85rem' }}
                   >
                     <svg style={{ width: 14, height: 14, verticalAlign: 'middle', marginRight: 4 }}>
                       <use xlinkHref="#icon-camera"></use>
