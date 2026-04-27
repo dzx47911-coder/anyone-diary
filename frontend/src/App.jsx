@@ -148,7 +148,7 @@ function App() {
         />
         <main className="diary-main">
           <Routes>
-            <Route path="/" element={<Home diaries={diaries} />} />
+            <Route path="/" element={<Home diaries={diaries} ownerName={ownerName} />} />
             <Route path="/calendar" element={<CalendarPage diaries={diaries} onDelete={deleteDiary} />} />
             <Route path="/generate" element={<CardGenerator onSave={addDiary} />} />
             <Route path="/summary" element={<SummaryPage diaries={diaries} />} />

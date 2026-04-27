@@ -1,15 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { Link } from 'react-router-dom'
 import FloatingDecorations from '../components/FloatingDecorations'
 
-function Home({ diaries }) {
-  const [ownerName, setOwnerName] = useState('')
-
-  useEffect(() => {
-    const saved = localStorage.getItem('diary-owner-name')
-    if (saved) setOwnerName(saved)
-  }, [])
-
+function Home({ diaries, ownerName }) {
   return (
     <div className="page-container">
       <FloatingDecorations />
