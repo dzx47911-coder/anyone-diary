@@ -48,9 +48,11 @@ function App() {
     }
   }
 
-  const handleLogin = (newToken, newUserId, newUsername) => {
-    localStorage.removeItem('diary-owner-name')
-    setOwnerName('')
+  const handleLogin = (newToken, newUserId, newUsername, isRegister) => {
+    if (isRegister) {
+      localStorage.removeItem('diary-owner-name')
+      setOwnerName('')
+    }
     setToken(newToken)
     setUserId(newUserId)
     setUsername(newUsername)

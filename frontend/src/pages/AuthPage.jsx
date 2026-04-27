@@ -33,7 +33,7 @@ function AuthPage({ onLogin }) {
       localStorage.setItem('diary-token', data.token)
       localStorage.setItem('diary-user-id', data.userId)
       localStorage.setItem('diary-username', username)
-      onLogin(data.token, data.userId, username)
+      onLogin(data.token, data.userId, username, !isLogin)
     } catch (err) {
       setError(err.message)
     } finally {
